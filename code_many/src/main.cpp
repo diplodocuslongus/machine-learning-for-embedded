@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include <TimerOne.h>
 #include "neural_network.h"
+#include "core_pins.h"
 
 #define DEBUG_PIN 9
 
@@ -170,7 +171,11 @@ void benchmark_neural_network2_serial(void)
   double layer[32];
   double output = 0.0;
   double exectime = 0.0;
+#ifdef TEENSY
+  uint32_t myTime = ARM_DWT_CYCCNT; 
+#else
   unsigned long startMicros = micros();
+#endif
 
   for (int i=0; i<1000; i++) 
   {
@@ -179,14 +184,28 @@ void benchmark_neural_network2_serial(void)
   }
     output = sigmoid(dot(layer, weights_2, 32));
   }
+#ifdef TEENSY
+  myTime = ARM_DWT_CYCCNT - myTime -2; 
+
+  exectime = double(myTime)/F_CPU_ACTUAL/1000.0;
+  Serial.println("we\'re using teensy");
+  Serial.print(F_CPU_ACTUAL);
+  Serial.println();
+#else
   unsigned long endMicros = micros();
-  Serial.print("Average inference time: ");
   exectime = double(endMicros - startMicros)/1000.0;
+#endif
+  Serial.print("Average inference time: ");
   Serial.print(exectime);
-  Serial.print("us / inference\n");
+  Serial.print("us / inference\r\n");
   Serial.print("Total for 1000 predictions:");
+#ifdef TEENSY
+  Serial.print(myTime); 
+//  Serial.print(myTime/F_CPU_ACTUAL); 
+#else
   Serial.print(endMicros - startMicros);
-  Serial.print("us\n");
+#endif
+  Serial.print("us\r\n");
 
   Serial.print("DONE, value of last prediction: ");
   Serial.println(output);
@@ -215,12 +234,17 @@ void loop() {
     Serial.print(tmp);
     cmd.concat(tmp);
 //    if (tmp == '\n'){
+      //to work with screen which by default outputs \r 
+      //when pressing enter
+    if (tmp == '\r'){
+        Serial.println();
+        cmd.concat('\n');
 //      Serial.print("you pressed return");
 //      for (int i=0;i<7;i++)
 //        Serial.println(cmd[i]);
 //      Serial.print("breaking from while");
-//      break;
-//    }
+      break;
+    }
 //    cmd.concat(tmp);
   }
 

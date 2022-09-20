@@ -1,7 +1,27 @@
 Arduino IDE code
 ----
 
-> This code is part of the post series in [here](https://www.stupid-projects.com/machine-learning-on-embedded-part-1/)
+> This code is part of the post series in [here](https://www.stupid-projects.com/posts/machine-learning-on-embedded-part-1/)
+
+This fork is focused on using platformIO, and modification to the code to do benchmark without an oscilloscope (option to use a scope remains).
+
+The (slightly) modifed code has been tested on a pololu a-star32U4, 16MHz and a teensy41, 600MHz
+
+Timing result 
+a-star32U4
+NN 2 (with hidden layer)
+Average inference time: 5680.57us / inference
+Total for 1000 predictions:5680568us
+
+teensy41
+NN 2
+Average inference time: 10.04us / inference
+Total for 1000 predictions:10040us
+
+For the timing of the teensy I used 
+https://forum.pjrc.com/threads/61561-Teensy-4-Global-vs-local-variables-speed-of-execution?highlight=execution
+/C_CPU_ACTUAL
+Original README:
 
 The code is tested with the following MCUs:
 
