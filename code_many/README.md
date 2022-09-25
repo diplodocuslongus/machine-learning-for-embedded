@@ -5,6 +5,14 @@ Arduino IDE code
 
 This fork is focused on using platformIO, and modification to the code to do benchmark without an oscilloscope (option to use a scope remains).
 
+PlatformIO environments:
+a-star32U4
+feather52840
+teensy41
+pico
+
+(other are not yet tested)
+
 The (slightly) modifed code has been tested on a pololu a-star32U4, 16MHz and a teensy41, 600MHz
 
 Timing result 
@@ -16,7 +24,12 @@ Total for 1000 predictions:5680568us
 teensy41
 NN 2
 Average inference time: 10.04us / inference
-Total for 1000 predictions:10040us
+Total for 1000 predictions:10.40ms (measured in terms of CPU cycles)
+
+adafruit_feather_nrf52840
+Average inference time: 622.07us / inference
+Total for 1000 predictions:622071us
+
 
 For the timing of the teensy I used 
 https://forum.pjrc.com/threads/61561-Teensy-4-Global-vs-local-variables-speed-of-execution?highlight=execution

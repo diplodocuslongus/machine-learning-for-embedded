@@ -1,16 +1,9 @@
 #include "Arduino.h"
-#ifdef USE_TIMER1
 #include <TimerOne.h>
-#endif
-
 #include "neural_network.h"
 #ifdef TEENSY
 #include "core_pins.h"
-#elif defined NRF52840 
-#include <Wire.h>
-#include <SPI.h>
 #endif
-
 #define DEBUG_PIN 9
 
 /* Those weights were calculated by training the model */
@@ -163,49 +156,6 @@ void benchmark_neural_network(void)
   Serial.println(result);
 }
 
-/* use with serial monitor */
-void benchmark_neural_network1_serial(void)
-{
-  double output = 0.0;
-  double exectime = 0.0;
-#ifdef TEENSY
-  uint32_t myTime = ARM_DWT_CYCCNT; 
-#else
-  unsigned long startMicros = micros();
-#endif
-
-  for (int i=0; i<1000; i++) 
-  {
-    output = sigmoid(dot(inputs[0], weights, 3));
-  }
-#ifdef TEENSY
-  myTime = ARM_DWT_CYCCNT - myTime -2; 
-  exectime = double(myTime)/F_CPU_ACTUAL*1000.0;
-  Serial.println("we\'re using teensy");
-  Serial.print(F_CPU_ACTUAL);
-  Serial.println();
-#else
-  unsigned long endMicros = micros();
-  exectime = double(endMicros - startMicros)/1000.0;
-#endif
-  Serial.print("Average inference time: ");
-  Serial.print(exectime);
-  Serial.print("us / inference\r\n");
-  Serial.print("Total for 1000 predictions:");
-#ifdef TEENSY
-  Serial.print(myTime); 
-  Serial.print(" CPU cycles, equal to ");
-  Serial.print(double(myTime)/F_CPU_ACTUAL*1000);
-  Serial.print("ms\r\n");
-//  Serial.print(myTime/F_CPU_ACTUAL); 
-#else
-  Serial.print(endMicros - startMicros);
-  Serial.print("us\r\n");
-#endif
-
-  Serial.print("DONE, value of last prediction: ");
-  Serial.println(output);
-}
 /*** Neural network with 1 hidden layer and 32 neurons ***/
 
 void test_neural_network2(void)
@@ -249,14 +199,15 @@ void benchmark_neural_network2_serial(void)
 
   for (int i=0; i<1000; i++) 
   {
-    for (int i=0; i<32; i++) {
-      layer[i] = sigmoid(dot(inputs[0], weights_1[i], 3));
-    }
+  for (int i=0; i<32; i++) {
+    layer[i] = sigmoid(dot(inputs[0], weights_1[i], 3));
+  }
     output = sigmoid(dot(layer, weights_2, 32));
   }
 #ifdef TEENSY
   myTime = ARM_DWT_CYCCNT - myTime -2; 
-  exectime = double(myTime)/F_CPU_ACTUAL*1000.0;
+
+  exectime = double(myTime)/F_CPU_ACTUAL/1000.0;
   Serial.println("we\'re using teensy");
   Serial.print(F_CPU_ACTUAL);
   Serial.println();
@@ -270,58 +221,86 @@ void benchmark_neural_network2_serial(void)
   Serial.print("Total for 1000 predictions:");
 #ifdef TEENSY
   Serial.print(myTime); 
-  Serial.print(" CPU cycles, equal to ");
-  Serial.print(double(myTime)/F_CPU_ACTUAL*1000);
-  Serial.print("ms\r\n");
 //  Serial.print(myTime/F_CPU_ACTUAL); 
 #else
   Serial.print(endMicros - startMicros);
-  Serial.print("us\r\n");
 #endif
+  Serial.print("us\r\n");
 
   Serial.print("DONE, value of last prediction: ");
   Serial.println(output);
 }
-
-
 void setup() {
   // Initialize serial port
   Serial.begin(9600);
   while (!Serial);
   
   Serial.println("Started");
-  Serial.println("Enter:\r\n 'test=<1 or 2>'");
+  Serial.println("Enter:\n 'test=<1 or 2>'");
   Serial.println(" 'start=<1 or 2>' to start benchmark");
   Serial.println(" 'stop' to stop benchmark");
   
   pinMode(DEBUG_PIN, OUTPUT);
 
-#ifdef USE_TIMER1  
   // Timer initialize
   Timer1.initialize(3000000);
   Timer1.stop();
-#endif
 }
 
 void loop() {
+  size_t cmd_len; 
    
   while(Serial.available()) {
+    cmd_len = cmd.length();
+        Serial.print("inwhile: Length of string: ");
+        Serial.print(cmd_len); Serial.print(" char:");
+        Serial.print(cmd);
+        Serial.print(" ");
     char tmp = Serial.read();
     // Transform lower case characters to upper case
     if (tmp>='a' && tmp<'z') tmp=tmp-32;
     Serial.print(tmp);
     cmd.concat(tmp);
+        Serial.print(cmd[cmd_len], DEC);Serial.print(" ");
+//    if (tmp == '\n'){
+    //to work with screen which by default outputs \r 
+    //when pressing enter
+//    if (tmp == '\r'){
+//      Serial.println();
+//      cmd.concat('\n');
+//      cmd_len = sizeof(cmd) / sizeof(cmd[0]);
+//      Serial.print("\'\\r\' was pressed \n");
+//      Serial.print("Length of string: ");
+//      Serial.print(cmd_len); Serial.print(" ");
+//      for (size_t i=0;i<cmd.length();i++){
+////      for (size_t i=0;i<cmd_len;i++){
+//        Serial.print(i); Serial.print(" ");
+//        Serial.println(cmd[i], DEC);
+//      }
+//      Serial.print("breaking from while\n");
+//      break;
+//    }
+//    cmd.concat(tmp);
   }// while(Serial.available())
 
   if (cmd != "") {
     if(cmd.indexOf('\r') > 0) {
       if(cmd.indexOf("TEST=") >= 0) {
-        size_t pos = cmd.indexOf('=')+1;
+        Serial.print("Length of string: ");
+        Serial.print(cmd.length()); Serial.print(" ");
+        for (size_t i=0;i<cmd.length();i++){
+          Serial.print(i); Serial.print(" ");
+          Serial.println(cmd[i], DEC);
+        }
+        Serial.print("index of \'\\n\' ");
+        Serial.print(cmd.indexOf('\n'));
+        Serial.print("index of TEST ");
+        Serial.println(cmd.indexOf("TEST="));
         // get mode
         char c_mode[2] = {0};
-        c_mode[0] = cmd[pos];
+        c_mode[0] = cmd[5];
         int mode = atoi(c_mode);
-        Serial.print("  Running NN test mode ");
+        Serial.print("Running NN test mode ");
         Serial.println(mode);
         switch(mode) {
           case 1:
@@ -331,22 +310,34 @@ void loop() {
             test_neural_network2();
             break;
           default:
-            Serial.println("Wrong mode, available modes: 1-2");
+            Serial.println("Available modes: 1-2");
         }
         cmd = "";
+        Serial.print("DONE test\n");
+        Serial.print("Length of string: ");
+        Serial.print(cmd.length()); Serial.print(" char cmd[0] = ");
+        Serial.print(cmd[0],DEC);Serial.print("\n");
       } // if(cmd.indexOf("TEST=") >= 0) 
       else if(cmd.indexOf("START=") >= 0) {
-        size_t pos = cmd.indexOf('=')+1;
+        Serial.print("Length of string: ");
+        Serial.print(cmd.length()); Serial.print(" ");
+        for (size_t i=0;i<cmd.length();i++){
+          Serial.print(i); Serial.print(" ");
+          Serial.println(cmd[i], DEC);
+        }
+        Serial.print("index of \'\\n\' ");
+        Serial.print(cmd.indexOf('\n'));
+        Serial.print("index of START ");
+        Serial.println(cmd.indexOf("START="));
         // get mode
         char c_mode[2] = {0};
-        c_mode[0] = cmd[pos];
+        c_mode[0] = cmd[6];
         int mode = atoi(c_mode);
         cmd = "";
         Serial.print("Starting benchmark mode ");Serial.println(mode);
         switch(mode) {
           case 1:
-            benchmark_neural_network1_serial();
-            //Timer1.attachInterrupt(benchmark_neural_network);
+            Timer1.attachInterrupt(benchmark_neural_network);
             break;
           case 2:
             benchmark_neural_network2_serial();
@@ -355,18 +346,16 @@ void loop() {
           default:
             Serial.println("Available modes: 1-2");
         } //switch(mode)
-#ifdef USE_TIMER1
         Timer1.start();
-#endif
       } //  else if(cmd.indexOf("START=") >= 0)
 
-#ifdef USE_TIMER1
       else if(cmd.indexOf("STOP") >= 0) {
         Serial.println("Stoping benchmark mode...");
         Timer1.stop();
         cmd = "";
       }
-#endif
-    } //  if(cmd.indexOf('\r') > 0) 
+    } //  if(cmd.indexOf('\n') > 0) 
+//        Serial.print("second if: Length of string: ");
+//        Serial.print(cmd.length()); Serial.print(" ");
   } //  if (cmd != "")
 } // loop()
