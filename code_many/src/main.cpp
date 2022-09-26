@@ -6,7 +6,7 @@
 #include "neural_network.h"
 #ifdef TEENSY
 #include "core_pins.h"
-#elif defined NRF52840 
+#elif defined NRF52840  || defined SPARKFUN_ARTEMIS
 #include <Wire.h>
 #include <SPI.h>
 #endif
@@ -102,7 +102,7 @@ double inputs[8][3] = {
 };
 
 
-String cmd = "";
+String comnd = "";
 String crnl = "\r\n"; // carriage return and newline (whenconnecting to serial with screen)
 
 static inline void debug_pin_toggle()
@@ -310,16 +310,16 @@ void loop() {
     // Transform lower case characters to upper case
     if (tmp>='a' && tmp<'z') tmp=tmp-32;
     Serial.print(tmp);
-    cmd.concat(tmp);
+    comnd.concat(tmp);
   }// while(Serial.available())
 
-  if (cmd != "") {
-    if(cmd.indexOf('\r') > 0) {
-      if(cmd.indexOf("TEST=") >= 0) {
-        size_t pos = cmd.indexOf('=')+1;
+  if (comnd != "") {
+    if(comnd.indexOf('\r') > 0) {
+      if(comnd.indexOf("TEST=") >= 0) {
+        size_t pos = comnd.indexOf('=')+1;
         // get mode
         char c_mode[2] = {0};
-        c_mode[0] = cmd[pos];
+        c_mode[0] = comnd[pos];
         int mode = atoi(c_mode);
         Serial.print("  Running NN test mode ");
         Serial.println(mode);
@@ -333,15 +333,15 @@ void loop() {
           default:
             Serial.println("Wrong mode, available modes: 1-2");
         }
-        cmd = "";
-      } // if(cmd.indexOf("TEST=") >= 0) 
-      else if(cmd.indexOf("START=") >= 0) {
-        size_t pos = cmd.indexOf('=')+1;
+        comnd = "";
+      } // if(comnd.indexOf("TEST=") >= 0) 
+      else if(comnd.indexOf("START=") >= 0) {
+        size_t pos = comnd.indexOf('=')+1;
         // get mode
         char c_mode[2] = {0};
-        c_mode[0] = cmd[pos];
+        c_mode[0] = comnd[pos];
         int mode = atoi(c_mode);
-        cmd = "";
+        comnd = "";
         Serial.print("Starting benchmark mode ");Serial.println(mode);
         switch(mode) {
           case 1:
@@ -358,15 +358,15 @@ void loop() {
 #ifdef USE_TIMER1
         Timer1.start();
 #endif
-      } //  else if(cmd.indexOf("START=") >= 0)
+      } //  else if(comnd.indexOf("START=") >= 0)
 
 #ifdef USE_TIMER1
-      else if(cmd.indexOf("STOP") >= 0) {
+      else if(comnd.indexOf("STOP") >= 0) {
         Serial.println("Stoping benchmark mode...");
         Timer1.stop();
-        cmd = "";
+        comnd = "";
       }
 #endif
-    } //  if(cmd.indexOf('\r') > 0) 
-  } //  if (cmd != "")
+    } //  if(comnd.indexOf('\r') > 0) 
+  } //  if (comnd != "")
 } // loop()

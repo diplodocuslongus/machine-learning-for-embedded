@@ -7,19 +7,29 @@ This fork is focused on using platformIO, and modification to the code to do ben
 
 PlatformIO environments:
 a-star32U4
+artemis
+https://www.sparkfun.com/products/16401
+Cortex-M4F with BLE 5.0 running up to 96MHz
 feather52840
+https://www.adafruit.com/product/4062
+https://learn.adafruit.com/introducing-the-adafruit-nrf52840-feather?view=all
+ARM Cortex M4F (with HW floating point acceleration) running at 64MHz
 teensy41
 pico
 
 (other are not yet tested)
 
-The (slightly) modifed code has been tested on a pololu a-star32U4, 16MHz and a teensy41, 600MHz
+The (slightly) modifed code has been tested on a pololu a-star32U4, 16MHz and a teensy41, 600MHz, and more, see below.
 
 Timing result 
 a-star32U4
 NN 2 (with hidden layer)
 Average inference time: 5680.57us / inference
 Total for 1000 predictions:5680568us
+
+apollo3blue artemis (sparkfun)
+Average inference time: 798.76us / inference
+Total for 1000 predictions:798.758ms
 
 teensy41
 NN 2
@@ -28,7 +38,7 @@ Total for 1000 predictions:10.40ms (measured in terms of CPU cycles)
 
 adafruit_feather_nrf52840
 Average inference time: 622.07us / inference
-Total for 1000 predictions:622071us
+Total for 1000 predictions:622.071ms
 
 
 For the timing of the teensy I used 
